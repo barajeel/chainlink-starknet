@@ -23,8 +23,6 @@ type Reader interface {
 	BlockWithTxHashes(ctx context.Context, blockID starknetrpc.BlockID) (*starknetrpc.Block, error)
 	Call(context.Context, starknetrpc.FunctionCall, starknetrpc.BlockID) ([]*felt.Felt, error)
 	Events(ctx context.Context, input starknetrpc.EventsInput) (*starknetrpc.EventChunk, error)
-	TransactionByHash(context.Context, *felt.Felt) (starknetrpc.Transaction, error)
-	TransactionReceipt(context.Context, *felt.Felt) (starknetrpc.TransactionReceipt, error)
 	AccountNonce(context.Context, *felt.Felt) (*felt.Felt, error)
 }
 
@@ -144,40 +142,6 @@ func (c *Client) Call(ctx context.Context, calls starknetrpc.FunctionCall, block
 	}
 	if out == nil {
 		return out, NilResultError("client.Call")
-	}
-	return out, nil
-}
-
-func (c *Client) TransactionByHash(ctx context.Context, hash *felt.Felt) (starknetrpc.Transaction, error) {
-	if c.defaultTimeout != 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, c.defaultTimeout)
-		defer cancel()
-	}
-
-	out, err := c.Provider.TransactionByHash(ctx, hash)
-	if err != nil {
-		return out, fmt.Errorf("error in client.TransactionByHash: %w", err)
-	}
-	if out == nil {
-		return out, NilResultError("client.TransactionByHash")
-	}
-	return out, nil
-}
-
-func (c *Client) TransactionReceipt(ctx context.Context, hash *felt.Felt) (starknetrpc.TransactionReceipt, error) {
-	if c.defaultTimeout != 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, c.defaultTimeout)
-		defer cancel()
-	}
-
-	out, err := c.Provider.TransactionReceipt(ctx, hash)
-	if err != nil {
-		return out, fmt.Errorf("error in client.TransactionReceipt: %w", err)
-	}
-	if out == nil {
-		return out, NilResultError("client.TransactionReceipt")
 	}
 	return out, nil
 }

@@ -118,7 +118,7 @@ func (txm *starktxm) broadcastLoop() {
 const FeeMargin uint32 = 115
 const RPCNonceErrMsg = "Invalid transaction nonce"
 
-func (txm *starktxm) estimateFriFee(ctx context.Context, client *starknet.Client, accountAddress *felt.Felt, tx starknetrpc.InvokeTxnV3) (*starknetrpc.FeeEstimate, *felt.Felt, error) {
+func (txm *starktxm) estimateFriFee(ctx context.Context, client *starknet.Client, accountAddress *felt.Felt, tx starknetrpc.InvokeTxnV3) (*starknetrpc.FeeEstimation, *felt.Felt, error) {
 	// skip prevalidation, which is known to overestimate amount of gas needed and error with L1GasBoundsExceedsBalance
 	simFlags := []starknetrpc.SimulationFlag{starknetrpc.SKIP_VALIDATE}
 
@@ -156,7 +156,7 @@ func (txm *starktxm) estimateFriFee(ctx context.Context, client *starknet.Client
 		}
 
 		// track the FRI estimate, but keep looping so we print out all estimates
-		var friEstimate *starknetrpc.FeeEstimate
+		var friEstimate *starknetrpc.FeeEstimation
 		for j, f := range feeEstimate {
 			txm.lggr.Infow("Estimated fee", "attempt", i, "index", j, "EstimateNonce", estimateNonce, "GasConsumed", f.GasConsumed, "GasPrice", f.GasPrice, "DataGasConsumed", f.DataGasConsumed, "DataGasPrice", f.DataGasPrice, "OverallFee", f.OverallFee, "FeeUnit", string(f.FeeUnit))
 			if f.FeeUnit == "FRI" {
@@ -290,7 +290,7 @@ func (txm *starktxm) broadcast(ctx context.Context, publicKey *felt.Felt, accoun
 	defer execCancel()
 
 	// finally, transmit the invoke
-	res, err := account.AddInvokeTransaction(execCtx, tx)
+	res, err := account.SendTransaction(execCtx, starknetrpc.BroadcastInvokev3Txn{InvokeTxnV3: tx})
 	if err != nil {
 		// TODO: handle initial broadcast errors - what kind of errors occur?
 		var dataErr *starknetrpc.RPCError
